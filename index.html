@@ -1,0 +1,142 @@
+<!doctype html>
+<html ng-app="root">
+<head>
+	<meta charset="utf-8">
+	<title>Little Math Game</title>
+	<link rel="stylesheet" type="text/css" href="stylesheets/style.css">
+</head>
+<body>
+	<div id="wrap">
+		<div class="side" ng-controller="SideCtrl">
+			<div class="head">
+				<h2>等級</h2>
+			</div>
+			<ul id="levelList">
+				<li ng-repeat="(idx, level) in levels"><a href="" ng-click="changeLevel(idx)">{{level}}</a></li>
+			</ul>
+		</div>
+		<div class="mainContent" ng-controller="MainCtrl">
+			<div class="head">
+				<h2>題目</h2>
+			</div>
+			<div id="itemWrap">
+				<span id="firstNumber">{{firstNumber}}</span>
+				<span id="operator">{{operator}}</span>
+				<span id="secondNumber">{{secondNumber}}</span>
+				<span> = </span>
+				<input type="text" id="answer" ng-model="userAns">
+			</div>
+		</div>
+		<div id="records">
+			<div class="head">
+				<h2>紀錄</h2>
+			</div>
+			<ul></ul>
+		</div>
+	</div>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+angular.module("root", [])
+	.factory('Service', function() {
+		var Service = {
+			levels: ["超簡單", "普通", "有點難"],
+			//set current class
+			current_level: 0
+		};
+		return Service;
+	})
+	.controller("MainCtrl", ["$scope", "Service", function($scope, Service){
+
+		var operatorOptions = ['+', '-', 'x'];
+		var correctAns;
+		$scope.levelService = Service; //要註冊在$scope裡面喔！
+
+		newItem(Service.current_level);
+		
+		$scope.$watch('userAns', function(newValue, oldValue){
+			// console.log('user input answer: ');
+			// console.log('oldValue: ' + oldValue);
+			// console.log('newValue: ' + newValue);
+			if (parseInt(newValue) === correctAns) {
+				alert('you are right');
+				writeRecord(newValue, Service.current_level);
+				newItem(Service.current_level);
+			} else {
+				// writeRecord(newValue);
+				console.log('wrong ans');
+			}
+		});
+
+		$scope.$watch('levelService.current_level', function(newValue, oldValue){
+			newItem(newValue);
+			//清除
+			$('#answer').val('');
+		});
+
+		function newItem(level) {
+			var range, base;
+			//clean previous ans
+			$('#answer').val('');
+
+			switch(level) {
+				case 0:
+					range = 30;
+					base = 0;
+				break;
+				case 1:
+					range = 40;
+					base = 10;
+				break;
+				case 2:
+					range = 50;
+					base = 20;
+				break;
+				default:
+					range = 10;
+				break;
+			}
+
+			$scope.firstNumber = Math.round(Math.random()*range)+base;
+			$scope.operator = operatorOptions[Math.round(Math.random()*2)];
+			$scope.secondNumber = Math.round(Math.random()*range)+base;
+			switch($scope.operator){
+				case '+':
+					correctAns = $scope.firstNumber + $scope.secondNumber;
+				break;
+				case '-':
+					correctAns = $scope.firstNumber - $scope.secondNumber;
+				break;
+				case 'x':
+					correctAns = $scope.firstNumber * $scope.secondNumber;
+				break;
+				default:
+					correctAns = $scope.firstNumber + $scope.secondNumber;
+				break;
+			}
+			// console.log('correctAns: ' + correctAns);
+		}
+
+		function writeRecord(user_ans, currLevel) {
+			var recordTemplate = '<li class="level' + currLevel + '"">' + $scope.firstNumber + ' ' + $scope.operator + ' ' + $scope.secondNumber + ' = ' + user_ans + '</li>';
+			jQuery('#records ul').append(recordTemplate);
+		}
+	}]
+)
+.controller("SideCtrl", ["$scope", "Service", function($scope, Service){
+	$scope.levels = Service.levels;
+	// console.log('test: ' + typeof Service.current_level);
+	console.log('test: ' + $('#levelList').html());
+	$('#levelList li').eq(0).addClass('currentLevel');
+	$scope.changeLevel = function(level) {
+		console.log('change level ' + level);
+		console.log('current level ' + Service.current_level);
+		Service.current_level = level;
+		$('#levelList li').removeClass('currentLevel');
+		$('#levelList li').eq(level).addClass('currentLevel');
+	}
+
+}]);
+</script>
+</body>
+</html>
